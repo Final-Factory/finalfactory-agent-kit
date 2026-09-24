@@ -1,0 +1,34 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then echo "gofmt needed:"; echo "$unformatted"; exit 1; fi
+      - run: go vet ./...
+      - run: go test -race ./...
+      - name: lint skills
+        run: sh tools/lint-skills
+      # The shipped targets. Windows also gets vet, since the process-liveness check is
+      # Windows-only code that the Linux test run never compiles.
+      - name: cross-build
+        run: |
+          GOOS=windows GOARCH=amd64 go vet ./...
+          GOOS=windows GOARCH=amd64 go build -o /dev/null ./cmd/ff-agent
+          GOOS=darwin GOARCH=arm64 go build -o /dev/null ./cmd/ff-agent
+          GOOS=darwin GOARCH=amd64 go build -o /dev/null ./cmd/ff-agent

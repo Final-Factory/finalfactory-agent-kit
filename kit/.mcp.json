@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "finalfactory": {
+      "command": "./ff-agent",
+      "args": ["mcp"]
+    }
+  }
+}

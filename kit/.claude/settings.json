@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": ["finalfactory"],
+  "permissions": {
+    "allow": ["mcp__finalfactory"]
+  }
+}
