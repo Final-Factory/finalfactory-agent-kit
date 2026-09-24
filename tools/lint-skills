@@ -1,0 +1,258 @@
+#!/bin/sh
+# lint-skills: check that every kit skill talks only about the game.
+#
+# A SKILL.md may reference the finalfactory MCP tools, game commands a player's agent is allowed
+# to run (through run_commands), `ff-agent` CLI calls, and in-game concepts. It may not reference
+# file paths, shell commands, URLs, network tools, source code, or development-only game
+# commands. This script enforces that, plus the frontmatter every skill must carry.
+#
+# Usage: tools/lint-skills [SKILL.md or directory ...]
+#        (default: kit/.claude/skills, relative to the repository root)
+# Exit:  0 all skills pass, 1 at least one problem, 2 usage error.
+#
+# POSIX sh + awk only, so it runs the same on macOS, Linux and Git Bash.
+#
+# The command lists below mirror the game's command tiers for game version 0.50 (the player-safe
+# set is what `list_commands` returns to a player's agent). Refresh them from kit/commands.md
+# whenever that reference is regenerated for a new game release.
+
+set -u
+
+MCP_TOOLS="game_status look_around inventory research_status enemies screenshot move_to mine build
+deconstruct craft cancel_craft research put_items take_items set_recipe configure ui wait_until
+wait_for run_commands list_commands give_ships take_ships respawn inspect aim_mass_driver"
+
+PLAYER_COMMANDS="help assembler.setrecipe mining.startnearest mining.startnearestactivation game.save
+ability.afterburner movement.hold movement.goto mining.until observe.state observe.screenshot construction.placeitem setting.massdriver setting.filterall
+pointer.moveto pointer.click pointer.press pointer.release pointer.drag pointer.clear ui.open
+ui.close ui.click ui.set ui.read construction.place construction.remove construction.swap
+construction.cut construction.deleteimmediate fleettransfer.give fleettransfer.take
+mobilestation.place mobilestation.movenow mobilestation.drive mobilestation.panelrotate rotate.at
+rotate.abs toggle.inserters toggle.cbots combat.respawn combat.ride transfer.put transfer.grab
+transfer.sort transfer.trash craft.queue craft.cancel blueprint.hold blueprint.drop
+setting.filteritem setting.splitterpriority setting.requesteritems setting.powerdistributor
+setting.name hauler.addstop hauler.enable research.queue research.remove research.setactive
+research.cancel wait waituntil wait.status session.start session.stop"
+
+DEV_COMMANDS="audit.write inventory.add inventory.remove desync.inject desync.forceresync spawn.ships
+craft.ship mining.cleartarget net.leave net.hostquit net.identity observe.conservation net.rejoin
+net.dropreconnect enemy.dumpcamps enemy.benchmarkshells enemy.verifybenchmark enemy.forkcamp
+enemy.prepareeconomy enemy.activateeconomy loot.preparedeath loot.prepareflatbiome
+loot.preparechunk loot.verifychunk loot.preparefixture loot.verifyfixture loot.fork
+c3isolation.arm c3isolation.apply c3isolation.verify c3isolation.restore c3counters.arm
+c3counters.report ability.cast visualepisode.start visualepisode.mark visualepisode.stop
+visualepisode.status visualepisode.control player.setposition player.assertnear
+construction.removelocal fleet.destroy fleettransfer.putlocal mobilestation.placelocal
+mobilestation.drivelocal mobilestation.driveinject mobilestation.dumpstate grids.dumpstate
+power.inspect charge.inspect rotate.local toggle.local combat.death combat.forklocal
+transfer.putlocal blueprint.place blueprint.placewaiting dyson.spawnstar terrain.place portal.spawn
+portal.assert portal.travel dyson.harvest dyson.factory heartbeats flowcontrol.throttle
+flowcontrol.stall perf.sample perf.stop"
+
+# awk -v values cannot hold newlines (BSD awk), so flatten the lists to one line each.
+MCP_TOOLS=$(echo $MCP_TOOLS)
+PLAYER_COMMANDS=$(echo $PLAYER_COMMANDS)
+DEV_COMMANDS=$(echo $DEV_COMMANDS)
+
+usage() {
+  echo "usage: tools/lint-skills [SKILL.md or directory ...]" >&2
+  exit 2
+}
+
+case "${1:-}" in
+  -h|--help) usage ;;
+esac
+
+# Resolve the default target relative to the repository root (this script's parent directory).
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+repo_root=$(dirname -- "$script_dir")
+if [ "$#" -eq 0 ]; then
+  set -- "$repo_root/kit/.claude/skills"
+fi
+
+files=""
+for target in "$@"; do
+  if [ -d "$target" ]; then
+    found=$(find "$target" -name SKILL.md -type f | sort)
+    if [ -z "$found" ]; then
+      echo "lint-skills: no SKILL.md found under $target" >&2
+      exit 1
+    fi
+    files="$files
+$found"
+  elif [ -f "$target" ]; then
+    files="$files
+$target"
+  else
+    echo "lint-skills: no such file or directory: $target" >&2
+    exit 2
+  fi
+done
+
+status=0
+count=0
+# SKILL.md paths never contain newlines; split on them only.
+old_ifs=$IFS
+IFS='
+'
+for f in $files; do
+  [ -n "$f" ] || continue
+  count=$((count + 1))
+  skill_dir=$(basename -- "$(dirname -- "$f")")
+  IFS=$old_ifs
+  awk -v file="$f" -v dirname="$skill_dir" \
+      -v tools="$MCP_TOOLS" -v safe="$PLAYER_COMMANDS" -v dev="$DEV_COMMANDS" '
+function fail(rule, msg) {
+  printf "%s:%d: %s: %s\n", file, NR, rule, msg
+  bad = 1
+}
+function fail0(rule, msg) {
+  printf "%s: %s: %s\n", file, rule, msg
+  bad = 1
+}
+function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
+# Word-boundary search: does `word` appear in `s` as a whole token?
+function has_word(s, word,    w) {
+  w = word; gsub(/\./, "[.]", w)
+  return s ~ ("(^|[^a-z0-9_-])" w "([^a-z0-9_-]|$)")
+}
+BEGIN {
+  n = split(tools, t, / +/); for (i = 1; i <= n; i++) if (t[i] != "") TOOL[t[i]] = 1
+  n = split(safe, t, / +/); for (i = 1; i <= n; i++) if (t[i] != "") SAFE[t[i]] = 1
+  n = split(dev, t, / +/); for (i = 1; i <= n; i++) if (t[i] != "") DEV[t[i]] = 1
+  state = "start"; bad = 0; infence = 0
+}
+{
+  line = $0
+  sub(/\r$/, "", line)
+}
+# ---------------- frontmatter ----------------
+state == "start" {
+  if (line != "---") { fail("frontmatter", "SKILL.md must start with a --- frontmatter line"); state = "body" }
+  else state = "front"
+  next
+}
+state == "front" {
+  if (line == "---") { state = "body"; next }
+  if (match(line, /^[A-Za-z][A-Za-z0-9_]*:/)) {
+    key = substr(line, 1, RLENGTH - 1)
+    val = trim(substr(line, RLENGTH + 1))
+    FM[key] = val
+  }
+  next
+}
+# ---------------- body ----------------
+{
+  lower = tolower(line)
+
+  # Code fences: plain fences are fine; fences tagged with a programming or shell language are not.
+  if (line ~ /^[ \t]*```/) {
+    tag = line; sub(/^[ \t]*```+/, "", tag); tag = tolower(trim(tag))
+    if (!infence && tag != "" && tag != "text" && tag != "markdown" && tag != "md")
+      fail("code", "code fence tagged \"" tag "\": skills contain game actions, not code or shell")
+    infence = !infence
+    next
+  }
+  if (infence && line ~ /^[ \t]*[$#>] /) fail("shell", "shell prompt line in a code block")
+
+  # URLs (the MCP resource scheme finalfactory:// is the only allowed one).
+  tmp = lower
+  gsub(/finalfactory:\/\/[a-z0-9\/_.-]*/, "", tmp)
+  if (tmp ~ /[a-z][a-z0-9+.-]*:\/\// || tmp ~ /(^|[^a-z0-9])www\./)
+    fail("url", "URLs are not allowed; skills act only inside the game")
+
+  # Shell, network and system tools. `ff-agent` calls are allowed; everything else is not.
+  tmp = lower
+  gsub(/ff-agent/, "", tmp)
+  split("curl wget ssh scp rsync sudo chmod chown powershell pwsh cmd.exe bash zsh python python3 pip npm npx git docker pkill taskkill regedit crontab", SH, " ")
+  for (i in SH) if (has_word(tmp, SH[i])) fail("shell", "mentions shell/system tool \"" SH[i] "\"")
+  if (tmp ~ /(^|[^a-z0-9_])rm -|&&|\|\| |\$\(|`[^`]*\$[a-z_]+/)
+    fail("shell", "shell syntax is not allowed")
+
+  # File paths.
+  if (line ~ /(^|[ \t("\047`])(\/(Users|home|etc|usr|var|tmp|opt|bin|sbin|Applications|Library|private|mnt|Volumes|System)\/|~\/|\.\.?\/)/)
+    fail("path", "file paths are not allowed")
+  if (line ~ /[A-Za-z]:\\/) fail("path", "Windows paths are not allowed")
+  if (line ~ /[A-Za-z0-9_-]\.(sh|py|ps1|bat|cmd|exe|dll|so|dylib|cs|js|ts|go|rb|pl|json|ya?ml|toml|ini|cfg|zip|log|txt|asset|prefab|unity|meta|md)([^A-Za-z0-9_]|$)/)
+    fail("path", "file names are not allowed")
+
+  # Source code.
+  if (line ~ /(^|[^A-Za-z0-9_])(using System|namespace [A-Z]|public (static |class |void |override )|private (static |void )|#include|import [a-z]|def [a-z_]+\(|function [a-zA-Z_]+\(|console\.log|System\.[A-Z]|UnityEngine|EntityManager|GetComponent)/)
+    fail("code", "source code is not allowed")
+
+  # Development-only launch flags.
+  if (line ~ /-ff[A-Z][A-Za-z]*/) fail("dev", "development launch flags are not allowed")
+
+  # Development-only game commands, anywhere.
+  work = lower
+  while (match(work, /[a-z][a-z0-9]*\.[a-z][a-z0-9]*/)) {
+    tok = substr(work, RSTART, RLENGTH)
+    if (tok in DEV) fail("dev", "development-only game command \"" tok "\" (a player agent is refused it)")
+    work = substr(work, RSTART + RLENGTH)
+  }
+
+  # Game commands written as `verb|args`, or as strings passed to run_commands, must be ones a
+  # player agent may run.
+  work = line
+  while (match(work, /`[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)?\|/)) {
+    tok = substr(work, RSTART + 1, RLENGTH - 2)
+    work = substr(work, RSTART + RLENGTH)
+    if (!(tok in SAFE)) fail("command", "\"" tok "\" is not a game command a player agent may run")
+  }
+  if (index(line, "run_commands(") > 0) {
+    work = substr(line, index(line, "run_commands("))
+    while (match(work, /"[^"]*"/)) {
+      tok = substr(work, RSTART + 1, RLENGTH - 2)
+      work = substr(work, RSTART + RLENGTH)
+      sub(/\|.*/, "", tok); sub(/^ffauto:/, "", tok)
+      if (!(tok in SAFE)) fail("command", "run_commands is given \"" tok "\", which is not a game command a player agent may run")
+    }
+  }
+
+  # Tool calls: any identifier written directly before "(" must be a finalfactory MCP tool.
+  work = line
+  while (match(work, /[A-Za-z_][A-Za-z0-9_]*\(/)) {
+    name = substr(work, RSTART, RLENGTH - 1)
+    pre = (RSTART > 1) ? substr(work, RSTART - 1, 1) : ""
+    work = substr(work, RSTART + RLENGTH)
+    if (pre ~ /[A-Za-z0-9_.]/) continue
+    if (!(name in TOOL)) fail("tool", "\"" name "(\" is not a finalfactory MCP tool")
+    else USED[name] = 1
+  }
+}
+END {
+  if (state != "body") fail0("frontmatter", "frontmatter is not closed with ---")
+  if (FM["name"] == "") fail0("frontmatter", "missing name")
+  else if (FM["name"] != dirname) fail0("frontmatter", "name \"" FM["name"] "\" must match its folder \"" dirname "\"")
+  if (FM["description"] == "") fail0("frontmatter", "missing description (say when to use the skill)")
+  else if (length(FM["description"]) < 40) fail0("frontmatter", "description too short to tell an agent when to use it")
+  if (FM["gameVersion"] == "") fail0("frontmatter", "missing gameVersion (the game version the skill was written and tested for)")
+  else if (FM["gameVersion"] !~ /^"?[0-9]+\.[0-9]+(\.[0-9]+)*"?$/) fail0("frontmatter", "gameVersion must look like 0.50")
+  c = FM["commands"]
+  if (c == "") fail0("frontmatter", "missing commands (the MCP tools the skill uses)")
+  else if (c !~ /^\[.*\]$/) fail0("frontmatter", "commands must be a [list]")
+  else {
+    gsub(/^\[|\]$/, "", c)
+    n = split(c, cs, /,/)
+    for (i = 1; i <= n; i++) {
+      cmd = trim(cs[i]); gsub(/^["\047]|["\047]$/, "", cmd)
+      if (cmd == "") continue
+      if (!(cmd in TOOL)) fail0("frontmatter", "commands lists \"" cmd "\", which is not a finalfactory MCP tool")
+      LISTED[cmd] = 1
+    }
+    for (u in USED) if (!(u in LISTED)) fail0("frontmatter", "body calls " u "() but commands does not list it")
+  }
+  exit bad
+}
+' "$f" || status=1
+  IFS='
+'
+done
+IFS=$old_ifs
+
+if [ "$status" -eq 0 ]; then
+  echo "lint-skills: $count skill(s) OK"
+else
+  echo "lint-skills: problems found" >&2
+fi
+exit "$status"
