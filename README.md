@@ -2,7 +2,7 @@
 
 Let Claude Code, or any agent that speaks MCP, play [Final Factory](https://store.steampowered.com/app/1383150/Final_Factory/) as you.
 
-The kit ships inside the game. Turn on **Let an agent play** in the pause menu, open your agent in
+The kit ships inside the game. Turn on **Agent Control** in the pause menu, open your agent in
 the folder the game shows you, and tell it what you want: "play the game", "set up a mining
 outpost", "automate planetary research", "build a mall".
 
@@ -12,9 +12,9 @@ what an agent can and cannot do in your game.
 
 ## Getting started
 
-1. Load a game, open the pause menu and turn on **Let an agent play**. Settings > Interface >
-   Agent Control shows the kit folder (with Copy path and Open folder buttons) and the command
-   that starts the MCP server.
+1. Load a game, open the pause menu and turn on **Agent Control** (bottom left). Settings >
+   Interface > Agent Control shows the kit folder (with Copy path and Open folder buttons) and
+   the command that starts the MCP server.
 2. Open [Claude Code](https://claude.com/claude-code) in that folder. The folder's `.mcp.json`
    registers the `finalfactory` MCP server, so there is nothing else to install.
 3. Say what you want, for example "play the game" or "set up a mining outpost".
