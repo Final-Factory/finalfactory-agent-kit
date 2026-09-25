@@ -50,7 +50,7 @@ The agent plays through the same rules as you. The game checks every request bef
 | `CLAUDE.md` | the agent's entry point: how to observe, act and verify, and the honest-play rules |
 | `HowToPlay.md` | the game guide agents read before they plan |
 | `commands.md` | every game command an agent may send, generated from the game |
-| `.claude/skills/` | plans for common goals: `play-the-game`, `starter-mining-outpost`, `automate-research`, `build-a-mall`, `research-to` |
+| `.claude/skills/` | plans for common goals: `play-the-game`, `starter-mining-outpost`, `automate-research`, `build-a-mall`, `research-to`, `scale-research`, `defend-base`, `reveal-map`, `manage-stability-power`, `fleet-logistics`, `endgame-victory` |
 
 The MCP server's tools use tile coordinates and in-game names: `game_status`, `look_around`,
 `inventory`, `research_status`, `enemies`, `inspect`, `screenshot` (returned as an image),

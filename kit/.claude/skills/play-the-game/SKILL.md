@@ -30,9 +30,9 @@ goals of a few minutes each, tell the player what you are doing, and check in be
 | # | If... | Then |
 |---|---|---|
 | 1 | health is 0 | `respawn()` |
-| 2 | enemies are attacking you or the base (`enemies`, alerts) | fly away from them, or fight if you have enough Bats; defend the base (section "Defence") |
+| 2 | enemies are attacking you or the base (`enemies`, attack warnings above the hotbar) | fly away from them, or fight if you have enough Bats; defend the base (`defend-base`) |
 | 3 | nothing is being researched | queue research (the `research-to` skill, Part C of `automate-research`) |
-| 4 | a structure is overheating, unstable or unpowered (`look_around`, alerts) | fix it: Heat Exchanger and Radiators, a Station Core or Struts, more Solar Panels |
+| 4 | a structure is overheating, unstable or unpowered (`look_around`, alerts) | fix it (`manage-stability-power`) |
 | 5 | the tutorial objective card is showing | follow the card (section "The tutorial") |
 | 6 | you have no Construction Bot | `craft(item="Construction Bot", count=1)` |
 | 7 | you have no working Mining Station | `starter-mining-outpost` |
@@ -40,8 +40,8 @@ goals of a few minutes each, tell the player what you are doing, and check in be
 | 9 | Atomic Printing and Automation are not learned | `research-to` |
 | 10 | research bots are hand-made or missing | `automate-research`, Part A (asteroid) |
 | 11 | you keep hand-crafting the same buildings | `build-a-mall` |
-| 12 | Miner Bots are wearing out faster than you replace them | a Ship Assembler set to "Miner Bot" fed with Plasma Engine Parts, with a Ship Yard beside it |
-| 13 | the base has no defence | automate Bats (section "Defence") |
+| 12 | Miner Bots are wearing out faster than you replace them, or a Ship Yard is full | `fleet-logistics` |
+| 13 | the base has no defence, or fog hides the area around it | `defend-base`, then `reveal-map` |
 | 14 | otherwise | the next step of the long arc (section "The long arc") |
 
 ## The tutorial
@@ -114,8 +114,7 @@ After the tutorial the objective card follows this arc. Each step is a goal for 
    Bots.
 10. **Find a black hole**: far out, beyond about 1,000 tiles.
 11. **Place a Dark Star Gate** near it and power it.
-12. **Launch a Singularity Vessel**: feed the gate its five stages (see the How to Play guide,
-    "Winning").
+12. **Launch a Singularity Vessel**: feed the gate its five stages (`endgame-victory`).
 
 Each of these is several sessions of work. Break it into goals, and check the research it needs
 with `research-to` first.
@@ -129,6 +128,7 @@ with `research-to` first.
   automated Bat line.
 - Laser Turrets fire using Capacitor charge.
 - If a camp keeps attacking one spot, ask the player before you go and clear it.
+- The `defend-base` skill has the full plan: signal, perimeter platforms, warnings and repair.
 
 ## Rules for this skill
 

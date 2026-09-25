@@ -59,6 +59,10 @@ player asked for:
   planetary research.
 - `build-a-mall`: Assemblers that make the buildings you keep placing, into Cargo Holds.
 - `research-to`: reach a named technology by queueing its prerequisites.
+- `scale-research`: grow asteroid, planetary and stellar research toward the late typed totals.
+- `defend-base`, `reveal-map`, `manage-stability-power`, `fleet-logistics`: defence against
+  raids, lifting the fog, stable powered grids, and ship lines and yards.
+- `endgame-victory`: the Dark Star Gate and the Singularity Vessel.
 
 A skill's steps are a plan, not a script. Check each precondition it lists against the live game,
 and adapt when the game disagrees.
