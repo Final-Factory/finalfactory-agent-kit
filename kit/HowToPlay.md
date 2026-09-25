@@ -125,6 +125,7 @@ Buildings (made by an Assembler, or by hand). Size is width x length in tiles.
 | Mass Driver | 2x2 | 6 Medium Density Structure, 4 AI Controller Circuit |
 | Asteroid Research Station | 4x3 | 8 Medium Density Structure, 4 Robotic Parts |
 | Ship Yard | 7x12 | 16 Medium Density Structure |
+| Defense Platform | 3x3 | 8 Medium Density Structure, 4 Robotic Parts |
 
 Bots and ships (made by a Ship Assembler, or by hand):
 
@@ -135,6 +136,24 @@ Bots and ships (made by a Ship Assembler, or by hand):
 | Bat (combat ship) | 4 AI Controller Circuit, 2 Plasma Engine Parts |
 | Asteroid Research Bot | 4 AI Controller Circuit, 2 Plasma Engine Parts |
 | Planetary Research Bot | 6 Ice, 1 Overdriver, 2 Connector |
+
+Mid-game items you will need for Ice, heat control and planetary research:
+
+| Item | Recipe |
+|---|---|
+| Overdriver | 12 Medium Density Structure, 6 Fabricator |
+| Advanced Solar Panel | 2 Solar Panel, 2 Robotic Parts |
+| Heat Exchanger | 8 Medium Density Structure |
+| Radiator | 4 Ice, 8 Low Density Structure |
+| Singularity Field Generator | 4 Mass Energy Converter, 6 AI Controller Circuit, 2 Fabricator |
+| Comet Catcher | 20 Medium Density Structure, 8 Robotic Parts, 1 Singularity Field Generator |
+| Comet Harvester | 16 Medium Density Structure, 16 Solid State Laser |
+| Greenhouse Station | 16 Medium Density Structure, 12 Organic Compounds, 8 Robotic Parts |
+| Planetary Research Station (4x3) | 1 Asteroid Research Station, 8 AI Controller Circuit, 16 Robotic Parts |
+| Stellar Research Bot | 3 Quantum Bot Chassis, 4 High Energy Connector, 2 Provider Cargo Hold, 2 Command Core |
+
+One Planetary Research Bot costs about 52 Iron Ore and 40 Bauxite Ore plus 6 Ice once you count
+the Overdriver and Connectors in it, so its line needs its own iron and bauxite supply.
 
 Medium Density Structure goes into almost everything, so iron is the ore you will run short of
 first. Use `inventory(craftable=true)` to see what you can make right now, and `list_commands` or
@@ -167,6 +186,10 @@ What happens after placing:
    inventory, or placed while you fly away, stays an unbuilt frame until you come back with it.
 3. `look_around` shows each structure's `state`: `frame` (not built yet) or `built`. Only built
    structures do anything. `wait_until` with the `structureBuilt` predicate waits for it.
+4. Any unbuilt frame near you takes a matching item from your inventory, even one you crafted
+   for somewhere else. A building destroyed by enemies or heat leaves a rebuild frame behind,
+   which quietly uses up the next matching item you bring close. Deconstruct frames you no longer
+   want before you carry replacements past them.
 
 `deconstruct(x, z)` removes a structure. The item comes back to your inventory. With a second
 corner it clears a rectangle.
@@ -193,7 +216,12 @@ together are two separate grids.
 - Most buildings (Mining Station, Assembler, Ship Assembler, Atomic Printer, Cargo Hold, research
   stations, Mass Driver) are **standard** structures. Two standard structures placed side by side
   do **not** connect. You bridge them with a **Connector** (which also carries items) or a
-  **Strut** (which carries nothing and only helps stability).
+  **Strut** (which carries nothing and only helps stability). A Strut or Connector only bridges
+  when it faces along the line between the two buildings: a strut facing up between two
+  buildings side by side on the x axis joins nothing. Turn it with `rotate.abs` to fix it.
+- A **Ship Yard** only connects at a few attach points along its two long sides (the green
+  diamonds show them). A Solar Panel placed against it does not join it. Link it to a standard
+  building's grid with a Strut or Connector that ends on one of those points.
 - Some modules attach **directly** to a neighbour with no bridge: Solar Panel, Advanced Solar
   Panel, Heat Exchanger, Radiator, Overdriver, Power Distributor, Command Core, Repair Center,
   Bat Dock. A direct module only joins a grid through its own connection end, and only when that
@@ -243,6 +271,10 @@ together are two separate grids.
 - Every structure costs some stability. A grid gets 70 free. **Station Cores** add a lot (each
   extra core adds less than the last); a **Strut** connected at both ends lowers the cost of the
   two structures it joins. Mining Stations, Ship Yards and Comet Catchers cost none.
+- **A Station Core only helps once it is part of the grid.** A core placed on its own, or beside
+  a building without a link, adds nothing. Connect it with a Strut or Connector to a building on
+  the grid you want to stabilise (a Mining Station, Cargo Hold, Junction or production building),
+  then check the grid's stability went up.
 - An **unstable grid shuts down completely**: power drops to zero, nothing crafts, and heat stops
   being removed. When a station is dead, fix stability before anything else. `look_around` shows a
   grid's stability `core`, `nonCore` and `needed` values.
@@ -258,7 +290,12 @@ together are two separate grids.
   appears at about 35 degrees, long before that.
 - A **Heat Exchanger** attached to the grid removes some heat; **Radiators** attached to the Heat
   Exchanger remove much more (a Radiator needs Ice to build). Both come from Thermal Management
-  research.
+  research. The exchanger attaches to a building's side like a Solar Panel, and the Radiator goes
+  on the exchanger's far end. Roughly, one exchanger removes about 1 degree per second, one
+  Radiator about 5, and a building cools itself by only 0.1 without them. An Advanced Solar
+  Panel alone makes 0.5 per second, so any grid with Advanced Solar Panels, a Greenhouse or a
+  Comet Harvester needs an exchanger and a Radiator. Otherwise its hot buildings die within about
+  15-20 minutes and turn back into frames.
 
 ## 8. Crafting by hand vs automation
 
@@ -269,8 +306,8 @@ together are two separate grids.
 | A few Bats to clear the first enemy camp | Combat ships for defence |
 | Never research bots beyond a first handful | All research bots |
 
-Miner Bots and research bots **wear out on purpose**: a miner self-destructs after hauling a set
-amount of ore, and a research bot after a set number of scans. Seeing them die and get replaced is
+Miner Bots and research bots **wear out on purpose**: a miner self-destructs after hauling 125
+ore (base), and a research bot after a set number of scans. Seeing them die and get replaced is
 normal. It is also why they must come from a Ship Assembler: hand-crafting will never keep up.
 
 ## 9. Logistics: how bots and items get around
@@ -279,7 +316,9 @@ normal. It is also why they must come from a Ship Assembler: hand-crafting will 
 Mass Driver up to 40 tiles away (centre to centre). Each driver needs power. Aim it with
 `aim_mass_driver(x, z, target_x, target_z)` (the sending driver's tile, then the receiving driver's
 tile), or `aim_mass_driver(x, z, clear=true)` to stop it. A
-driver holds fire while its target is full, so a stalled link usually means a full receiver. Cargo
+driver holds fire while its target is full, so a stalled link usually means a full receiver. At
+the receiving end, a Connector placed against the receiver and pointing away from it (filtered to
+the item) carries the delivered items on to where they are needed. Cargo
 Barges, Logistics Bays, Haulers and mobile stations come later.
 
 **Bots and ships** move over the logistics network, which links every logistics building you own:
@@ -291,11 +330,20 @@ Barges, Logistics Bays, Haulers and mobile stations come later.
   and stations with an empty slot pull from the closest Ship Yard. Give every bot line a powered
   Ship Yard next to its Ship Assembler.
 - With every slot full and no Ship Yard, the Ship Assembler stops and waits. That is normal, not a
-  fault.
+  fault. The assembler's panel says why ("No available research stations", "Nowhere for this ship
+  to go"), and its **Deploy** button pulls the waiting ship into your fleet if you have room.
+- **A full Ship Yard stops every line that stages there.** A yard holds 60 ships and a Defense
+  Platform 20. A Miner Bot line left running once every Mining Station is full fills the yard with
+  spare miners, and then the research-bot line next to it has nowhere to put its bots either.
+  Stop or switch the recipe of a line whose output is not needed, and empty a clogged yard with
+  `take_ships` (it works on yards and platforms, not on an assembler).
 - **Stay away from running lines.** A player within about 60 tiles of a Ship Assembler counts as a
-  place that will take its bots, and the bots go into your fleet instead of to the stations. When
-  bots are "missing", check your own fleet first. Build the line, then leave it and check it from a
-  distance.
+  place that will take its bots, for the ship types your fleet panel requests (with Request
+  Specific Units on, you receive a type only up to the count you ask for). Those bots go into your
+  fleet instead of to the stations. When bots are "missing", check your own fleet first. Build the
+  line, then leave it and check it from a distance.
+- The same goes for hand-crafting: a ship you craft near a Ship Yard or Defense Platform can fly
+  into it instead of your fleet. Craft combat ships away from them.
 - If crafted bots end up in your fleet anyway, give them to the right building with
   `give_ships`.
 
@@ -307,9 +355,20 @@ Barges, Logistics Bays, Haulers and mobile stations come later.
   "Asteroid Science".
 - A tech needs its prerequisites learned. Queue them in order. If the game refuses to queue a tech
   whose prerequisite is only queued, wait until the prerequisite finishes and queue it then.
+- `research(tech, start_now=true)` replaces the active tech. The replaced tech is not put back in
+  the queue, and queued techs that needed it are dropped too. Queue them again afterwards.
 - Each tech costs points from the shared bank. Many also require a **typed total**: a number of
   Asteroid, Planetary, Stellar or Black Hole Research points earned over the whole game. Costs scale
   with the world's tech cost setting, so read the real numbers from `research_status`.
+- A tech that has all its shared points but lacks a typed total sits at full progress and waits.
+  The game then shows the missing total, for example "Planetary Research (937/1,200)". Shared
+  points earned meanwhile are banked, not lost.
+- **Planetary research gates the whole middle of the tree, not just the end.** After Planetary
+  Science, most techs on the way to Stellar Science need a planetary total (base values: Fast
+  inserter Bots 1,000, High Energy Manipulation 1,200, Quantum Computing 1,800, High Energy
+  Connectors and Advanced Bot Production 2,500, Quantum Printing 2,600, Stellar Science 6,000,
+  and the later ones also need 2,000-8,000 asteroid). Start an automated Planetary Research Bot line
+  as soon as Planetary Science is done; a few planetary bots are not enough.
 - Points come from:
   - **objective rewards** (the early techs finish the moment you start them, from banked points),
   - a trickle of Asteroid Research while you mine by hand,
@@ -341,8 +400,18 @@ cheap and worth getting early.
   Comet Fragments. High Density Structure (3 Iron Ore, 2 Organic Compounds) and Organic Polymer
   unlock most mid-game buildings.
 - **Planetary research.** Find a Terra World (the Derelict biome around the start usually has one),
-  place a Planetary Research Station within 30 tiles of it, power it (it draws 30, so Advanced Solar
-  Panels), cool it, and feed it Planetary Research Bots from a Ship Assembler.
+  place a Planetary Research Station within 30 tiles of it, power it, and feed it Planetary
+  Research Bots from a Ship Assembler. The station (4x3) has only two attach points, the middle
+  tile of each short side, and takes no Heat Exchanger. It draws 30 while working. Two Advanced
+  Solar Panels power it fully, but with no way to cool them they overheat and die within about
+  15-20 minutes. Two regular Solar Panels (14 power) run it at about half speed with no upkeep, so
+  build more stations rather than hotter panels. Each panel must face the station (the west panel
+  faces right, the east panel faces left), or it forms its own grid.
+- **The planetary bot line** is the longest early chain: iron to Medium Density Structure to
+  Robotic Parts to Fabricators to Overdrivers, bauxite to Low Density Structure to Connectors, and
+  Ice from a Comet Catcher and Harvester, all into one Ship Assembler with a Ship Yard beside it.
+  The research stations at the Terra World pull the bots from that yard over the logistics
+  network, however far away it is.
 - **Stars.** Find one (Nebula biomes). Stellar Science gives the Stellar Research Station and bot.
   Mega Structures and Dyson Spheres let you build a Dyson Platform around a main sequence star;
   Dyson Bots on it make power and Exotic Matter.
@@ -364,9 +433,27 @@ mining stations. The `build-a-mall` skill walks through one.
 
 - **Enemies** live in camps and spawners (Urso bases, Stingers, Cutters, Razors, Tridents).
   `enemies` lists what you can see. Camps far from every player go dormant and do not show up in a
-  distant scan, so an empty scan far away proves nothing.
-- **Your fleet fights for you.** Bats in your fleet engage enemies when you fly close. Eight Bats
-  and the player's Plasma Bolt cleared the first tutorial camp. Build up Bats before flying into a camp.
+  distant scan, so an empty scan far away proves nothing. Scout in hops of about 60 tiles, scan
+  again after each hop, and retreat along the path you came in by, never through space you have
+  not scanned.
+- **Camps grow while you are near.** A camp within about 190 tiles (three 64-tile chunks) of any
+  player is awake and keeps adding spawners, up to 20. Staging your fleet just outside a camp gives
+  it time to grow.
+- **Your fleet fights for you, but only around you.** Bats in your fleet engage enemies near your
+  ship; they do not go after spawners on their own. Parking 25-35 tiles off a camp is a stalemate
+  that slowly loses Bats. Fly into the camp with the whole fleet, or stay away. Eight Bats and the
+  player's Plasma Bolt cleared the first tutorial camp; about 30 Bats with Bat Damage 3 cleared a
+  six-spawner camp with light losses. Tridents hit much harder than Cutters and Stingers: 40 Bats
+  were not enough for a camp with two Trident spawners.
+- **Fleets hide once you have more than 10 combat ships.** The first time that happens the game
+  turns on fleet hiding for everyone. A hidden fleet stays out of sight and only comes out to fight
+  when an enemy is near its own player, so it defends nothing while you are elsewhere. To defend a
+  place, go there, or turn fleet hiding off with the hide-fleet toggle beside the fleet stance
+  controls at the bottom right of the screen (it applies to every player). Ships sitting in a Ship Yard defend
+  nothing.
+- **Raids.** Groups of Cutters raid your buildings and go for Solar Panels and outlying Mining
+  Stations first. An unguarded outpost can be razed into rebuild frames while you are away. A
+  powered Defense Platform with Bats in it guards the area around itself.
 - **Abilities**: Afterburner (a dash; `ability.afterburner` through `run_commands`), Plasma Bolt,
   and Frenzy, which needs four ready Bats per charge. Freshly crafted Bats take about two minutes
   before they count toward Frenzy.
@@ -439,3 +526,13 @@ mining stations. The `build-a-mall` skill walks through one.
 13. **Trusting a distant enemy scan.** Dormant camps wake up when you arrive.
 14. **Running out of iron.** Medium Density Structure is in nearly every recipe. Automate iron
     early and keep a spare Mining Station on an iron asteroid.
+15. **Placing a Station Core with no link.** A core adds stability only once a Strut or Connector
+    joins it to the grid.
+16. **Letting one line fill the Ship Yard.** A yard full of spare Miner Bots stops every other
+    assembler that stages there.
+17. **Parking the fleet next to a camp.** Bats only fight around you, and the camp keeps growing.
+    Go in with everything or stay away.
+18. **Expecting parked or hidden fleets to defend.** With more than 10 combat ships the fleet
+    hides and only fights near its own player.
+19. **Leaving planetary research for later.** Most mid-game techs need a planetary total; build the
+    Planetary Research Bot line right after Planetary Science.
