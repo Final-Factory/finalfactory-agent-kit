@@ -263,8 +263,17 @@ together are two separate grids.
   satisfaction in `look_around` first. One Solar Panel runs a Mining Station; it does not run an
   Assembler.
 - A **Power Distributor** sends spare power from one grid to another.
-- A **Capacitor** stores spare power as charge for buildings that need bursts, such as Laser
-  Turrets.
+- **Stored energy** is counted in kW·s (1 kW for 1 second). Laser Turrets and the High-Energy and
+  Gauge Field Mass Drivers need bursts of it. They take it from spare generation first, then from
+  Capacitors, then from Batteries, so a grid with enough spare power needs no storage at all.
+  - A **Capacitor** (1 tile) holds 240 kW·s and can give all of it at once: the burst tool. One
+    Capacitor lets two Laser Turrets open fire instantly.
+  - A **Battery** (2x2, *Power Storage* research after *Capacitors*) holds 18,000 kW·s but gives at
+    most 30 kW and refills at most 20 kW: the endurance tool for long fights.
+  - Storage refills only from spare generation.
+- **Combat comes first.** If spare generation plus storage cannot keep the Laser Turrets firing,
+  the grid takes the difference from the factory, and every other building on that grid slows
+  down. Storage protects production during a fight.
 
 ### Stability
 
@@ -316,7 +325,10 @@ normal. It is also why they must come from a Ship Assembler: hand-crafting will 
 Mass Driver up to 40 tiles away (centre to centre). Each driver needs power. Aim it with
 `aim_mass_driver(x, z, target_x, target_z)` (the sending driver's tile, then the receiving driver's
 tile), or `aim_mass_driver(x, z, clear=true)` to stop it. A
-driver holds fire while its target is full, so a stalled link usually means a full receiver. At
+driver holds fire while its target is full, so a stalled link usually means a full receiver. The
+High-Energy and Gauge Field drivers also need a 48 kW·s launch burst at 192 kW: if the grid cannot
+pay it in full (spare power plus Capacitors), the driver starts its whole cycle again instead of
+firing, so give them a Capacitor or plenty of spare power. At
 the receiving end, a Connector placed against the receiver and pointing away from it (filtered to
 the item) carries the delivered items on to where they are needed. Cargo
 Barges, Logistics Bays, Haulers and mobile stations come later.
@@ -462,7 +474,8 @@ mining stations. The `build-a-mall` skill walks through one.
   `respawn()` before anything else.
 - **Defending the base.** A Defense Platform holds up to 20 combat ships and pulls them from a
   Ship Yard; a Bat Dock attached to a Defense Platform or Ship Yard keeps requesting Bats. Laser
-  Turrets fire on nearby enemies using Capacitor charge. Automate Bat production in a Ship
+  Turrets fire on nearby enemies: each needs 120 kW·s to open fire (slower on a weak grid), then
+  25 kW while firing, from spare power or storage (see Power). Automate Bat production in a Ship
   Assembler so defences refill themselves.
 - A Repair Center attached to a station slowly heals every connected structure.
 
