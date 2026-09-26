@@ -267,7 +267,7 @@ together are two separate grids.
   Gauge Field Mass Drivers need bursts of it. They take it from spare generation first, then from
   Capacitors, then from Batteries, so a grid with enough spare power needs no storage at all.
   - A **Capacitor** (1 tile) holds 240 kW·s and can give all of it at once: the burst tool. One
-    Capacitor lets two Laser Turrets open fire instantly.
+    Capacitor lets two Laser Turrets open fire within a second.
   - A **Battery** (2x2, *Power Storage* research after *Capacitors*) holds 18,000 kW·s but gives at
     most 30 kW and refills at most 20 kW: the endurance tool for long fights.
   - Storage refills only from spare generation.
