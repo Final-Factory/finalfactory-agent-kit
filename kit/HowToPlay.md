@@ -269,7 +269,11 @@ together are two separate grids.
   - A **Capacitor** (1 tile) holds 240 kW·s and can give all of it at once: the burst tool. One
     Capacitor lets two Laser Turrets open fire within a second.
   - A **Battery** (2x2, *Power Storage* research after *Capacitors*) holds 18,000 kW·s but gives at
-    most 30 kW and refills at most 20 kW: the endurance tool for long fights.
+    most 30 kW and refills at most 20 kW: the endurance tool for long fights. Batteries also
+    power the factory when generation falls short (after the Laser Turrets are paid), so a grid
+    keeps running through a dip in generation; hover the station to see how long they will last.
+    Capacitors never power the factory: they are kept for bursts.
+  - Bursts drain Capacitors before Batteries, and spare generation refills Capacitors first.
   - Storage refills only from spare generation.
 - **Combat comes first.** If spare generation plus storage cannot keep the Laser Turrets firing,
   the grid takes the difference from the factory, and every other building on that grid slows
