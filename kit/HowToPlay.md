@@ -266,11 +266,14 @@ together are two separate grids.
 - **Stored energy** is counted in kW·s (1 kW for 1 second). Laser Turrets and the High-Energy and
   Gauge Field Mass Drivers need bursts of it. They take it from spare generation first, then from
   Capacitors, then from Batteries, so a grid with enough spare power needs no storage at all.
-  - A **Capacitor** (1 tile) holds 54 kW·s (15 Wh) and charges and gives at up to 200 kW: the burst
-    tool. One full Capacitor pays a High-Energy Mass Driver launch; a Gauge Field launch takes two.
-  - A **Battery** (2x2, *Power Storage* research after *Capacitors*) holds 108,000 kW·s (30 kWh),
-    gives at most 180 kW and refills at most 30 kW (from 0.50.0.73; before that 5 kWh, 30 kW out,
-    5 kW in): the endurance tool for long fights. Batteries also
+  - A **Capacitor** (1 tile) holds 90 kW·s (25 Wh) and charges and gives at up to 320 kW (from
+    0.50.0.77; before that 54 kW·s at 200 kW): the burst tool. One full Capacitor pays a High-Energy
+    Mass Driver launch; a Gauge Field launch takes two, or one Capacitor and a Battery.
+  - A **Battery** (2x2, *Power Storage* research after *Capacitors*) holds 86,400 kW·s (24 kWh),
+    gives at most 120 kW and refills at most 96 kW (from 0.50.0.77; 30 kWh, 180 kW out and 30 kW in
+    from 0.50.0.73; a battery saved above 24 kWh loses the excess on load). One Battery alone cannot
+    pay a launch: a High-Energy one also needs 72 kW of spare power. It is the endurance tool for
+    sustained outages. Batteries also
     power the factory when generation falls short (after the Laser Turrets are paid), so a grid
     keeps running through a dip in generation; hover the station to see how long they will last.
     Capacitors never power the factory: they are kept for bursts.
@@ -331,7 +334,7 @@ Mass Driver up to 40 tiles away (centre to centre). Each driver needs power. Aim
 `aim_mass_driver(x, z, target_x, target_z)` (the sending driver's tile, then the receiving driver's
 tile), or `aim_mass_driver(x, z, clear=true)` to stop it. A
 driver holds fire while its target is full, so a stalled link usually means a full receiver. The
-High-Energy and Gauge Field drivers also need a 48 kW·s launch burst at 192 kW: if the grid cannot
+High-Energy and Gauge Field drivers also need a launch burst (48 kW·s at 192 kW, and 96 kW·s at 384 kW): if the grid cannot
 pay it in full (spare power plus Capacitors), the driver starts its whole cycle again instead of
 firing, so give them a Capacitor or plenty of spare power. At
 the receiving end, a Connector placed against the receiver and pointing away from it (filtered to
