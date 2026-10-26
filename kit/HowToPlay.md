@@ -194,6 +194,11 @@ What happens after placing:
 `deconstruct(x, z)` removes a structure. The item comes back to your inventory. With a second
 corner it clears a rectangle.
 
+A building that held items, or a belt connector you delete with items on it, leaves an Inventory
+Box on its tile. Your own construction bots fly it home into your inventory from the start of the
+game. Ancient Treasures wait until you research Remote Construction, and the bots on Construction
+Towers fetch no box until then (from the build after game version 1.0.0.18).
+
 Placement rules that matter:
 
 - **Mining Station**: must be within 16 tiles (centre to centre) of an asteroid, with its footprint
