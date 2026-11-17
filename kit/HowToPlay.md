@@ -443,6 +443,19 @@ cheap and worth getting early.
 - **Mobile stations.** After Mobile Stations research, any station can lift off and fly slowly;
   Rocket Adapters make it faster and burn any item as fuel. A Command Core gives a station a stop
   schedule between named Landing Zones. `configure` covers stops and turning the schedule on.
+- **Ordering several mobile stations at once** (from game version 1.0.0.50). Ctrl+click a station
+  to add it to the selection or take it out, or Ctrl+drag from empty ground to box every station
+  inside, flying ones too. In the world view Ctrl+click on a station in reach still takes its
+  output, so use the map or a station out of reach. At most 50 stations: a box past that keeps the
+  50 nearest where the drag started. With two or more selected, the group window lists them and has
+  **Move all** (click a spot; with Keep formation on they keep their places around it, each at its
+  own speed), **Land all** (one landing ghost for the group; nothing lands if any spot is taken)
+  and Clear. A plain click or Escape ends the group. **Ctrl+Z** undoes your last station order
+  (one step, Move or Land; a station given another order since is left alone); it shares the key
+  with building undo and undoes whichever you did last. **Control groups**: where stations are in
+  play (some selected, on the map, or with the group window open), Ctrl+digit saves the selection
+  as group 1 to 9 or 0 and a digit on the map or in the group window recalls it. Everywhere else
+  the digits stay the hotbar's: a digit picks the slot and Ctrl+digit crafts its item.
 - **Artifacts.** Oracles, obelisks and portals are activated by mining them. An Oracle sells
   upgrades (speed, health, reach and more) for Lumin Orbs, which the whole crew shares.
 
