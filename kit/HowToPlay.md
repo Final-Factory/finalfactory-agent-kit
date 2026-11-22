@@ -447,10 +447,16 @@ cheap and worth getting early.
   to add it to the selection or take it out, or Ctrl+drag from empty ground to box every station
   inside, flying ones too. In the world view Ctrl+click on a station in reach still takes its
   output, so use the map or a station out of reach. At most 50 stations: a box past that keeps the
-  50 nearest where the drag started. With two or more selected, the group window lists them and has
-  **Move all** (click a spot; with Keep formation on they keep their places around it, each at its
-  own speed), **Land all** (one landing ghost for the group; nothing lands if any spot is taken)
-  and Clear. A plain click or Escape ends the group. **Ctrl+Z** undoes your last station order
+  50 nearest where the drag started. With two or more selected, the group window lists them. Orders
+  come from the mode button (one station's window has Move and Land too): **L** (rebindable; the
+  tooltip names your key) switches Move and Land, and the mode stays until you switch it. In **Move**
+  a left click on open space flies them there (in the formation the window picks: Keep holds their
+  places around it), Shift+click adds a waypoint, and **R** turns the preview clockwise and
+  **Reverse Rotate** (Ctrl+R by default) counter-clockwise, 5 degrees a tap or steadily while held,
+  for one station or a group; a move under 50 m keeps the heading. In **Land** a left click on open
+  space lands them all (one landing ghost for the group; nothing lands if any spot is taken) and R
+  turns the landing a quarter turn. A right click never moves or lands anything: it only clears what
+  is in your hand. Clear or Escape ends the group. **Ctrl+Z** undoes your last station order
   (one step, Move or Land; a station given another order since is left alone); it shares the key
   with building undo and undoes whichever you did last. **Control groups**: where stations are in
   play (some selected, on the map, or with the group window open), Ctrl+digit saves the selection
