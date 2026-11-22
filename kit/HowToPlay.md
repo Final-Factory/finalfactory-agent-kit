@@ -452,10 +452,10 @@ cheap and worth getting early.
   tooltip names your key) switches Move and Land, and the mode stays until you switch it. In **Move**
   a left click on open space flies them there (in the formation the window picks: Keep holds their
   places around it), Shift+click adds a waypoint, and **R** turns the preview clockwise and
-  **Reverse Rotate** (Ctrl+R by default) counter-clockwise, 5 degrees a tap or steadily while held,
+  **Reverse Rotate** (Shift+R or Ctrl+R by default) counter-clockwise, 5 degrees a tap or steadily while held,
   for one station or a group; a move under 50 m keeps the heading. In **Land** a left click on open
   space lands them all (one landing ghost for the group; nothing lands if any spot is taken) and R
-  turns the landing a quarter turn. A right click never moves or lands anything: it only clears what
+  turns the landing a quarter turn (Shift+R or Ctrl+R the other way). A right click never moves or lands anything: it only clears what
   is in your hand. With your hand empty, Escape, Q or a right click deselects the stations, as Clear
   does. **Ctrl+Z** undoes your last station order
   (one step, Move or Land; a station given another order since is left alone); it shares the key
