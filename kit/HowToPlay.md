@@ -456,7 +456,8 @@ cheap and worth getting early.
   for one station or a group; a move under 50 m keeps the heading. In **Land** a left click on open
   space lands them all (one landing ghost for the group; nothing lands if any spot is taken) and R
   turns the landing a quarter turn. A right click never moves or lands anything: it only clears what
-  is in your hand. Clear or Escape ends the group. **Ctrl+Z** undoes your last station order
+  is in your hand. With your hand empty, Escape, Q or a right click deselects the stations, as Clear
+  does. **Ctrl+Z** undoes your last station order
   (one step, Move or Land; a station given another order since is left alone); it shares the key
   with building undo and undoes whichever you did last. **Control groups**: where stations are in
   play (some selected, on the map, or with the group window open), Ctrl+digit saves the selection
